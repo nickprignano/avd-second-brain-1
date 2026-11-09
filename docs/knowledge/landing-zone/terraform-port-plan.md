@@ -1,34 +1,32 @@
 ---
 title: "Port plan: an AVD-native Terraform kit from the nerdio-hcl approach"
-summary: "Plan to port nerdio-hcl's approach to Terraform that deploys and operates AVD directly, with no Nerdio Manager in the path; awaits the owner's yes"
+summary: "Plan to port nerdio-hcl's approach to Terraform that deploys and operates AVD directly in avd-ops/avd-hcl, with no Nerdio Manager in the path; phases 1-3 built offline"
 topic: roadmap
-status: plan
-last_reviewed: 2026-10-21
+status: verified
+last_reviewed: 2026-11-09
 ---
 
 # Port plan: an AVD-native Terraform kit from the nerdio-hcl approach
 
 The owner asked for a plan to port the approach of
 [nerdio-hcl](https://github.com/nickprignano/nerdio-hcl) (Apache-2.0) to Terraform that deploys
-and operates Azure Virtual Desktop directly, with no Nerdio Manager in the path. This page is the
-plan only. No code is written until the owner says yes, and the first open question below decides
-where the code may live at all. The decision it needs is
-[0025](../decisions/0025-avd-native-terraform-kit.md).
+and operates Azure Virtual Desktop directly, with no Nerdio Manager in the path. That kit lives
+in [avd-ops/avd-hcl](https://github.com/avd-ops/avd-hcl) under
+[decision 0025](../decisions/0025-avd-native-terraform-kit.md), where phases 0–3 are built and
+tested offline.
 
-nerdio-hcl was read at commit `75f59bc` (2026-10-21), read-only. Nothing was copied from it yet;
-any file reused later keeps its Apache-2.0 header and a NOTICE line. Nothing is taken from Nerdio's
+nerdio-hcl was read at commit `75f59bc` (2026-10-21), read-only. Reused files in `avd-hcl` keep
+their Apache-2.0 header and a `NOTICE` line. Nothing is taken from Nerdio's
 own repositories or from other unlicensed Nerdio projects, which are reference only in nerdio-hcl
 too (its decision 0013).
 
 ## The constraint that comes first
 
 The family's lanes ([0012](../decisions/0012-family-format-project-lanes.md),
-[family.yaml](../family.yaml) `not_here`) forbid HCL in every AVD repo, and CI enforces it
-(this KB's `validate.py`, the landing zone's `lanes.yml`, avd-swarm's `no-hcl` Guard). The lane
-for Terraform and Packer is owned by nerdio-hcl. So an AVD-native Terraform kit can't land in
-avd-landing-zone, avd-current-state, avd-swarm, avd-assess, avd-ops or this repo as things stand.
-Two ways through, both the owner's call (question 1): a new sibling repo in the HCL lane, or a
-change to decision 0012. No lane file changes until the owner answers.
+[family.yaml](../family.yaml) `not_here`) forbid HCL in every Bicep/PowerShell AVD repo, and CI enforces it
+(this KB's `validate.py`, the landing zone's `lanes.yml`, avd-swarm's `no-hcl` Guard). Native-AVD
+Terraform and Packer live in [avd-ops/avd-hcl](https://github.com/avd-ops/avd-hcl), while Nerdio
+Terraform and Packer stay in [nerdio-hcl](https://github.com/nickprignano/nerdio-hcl).
 
 ## 1. Maps one to one
 
@@ -112,13 +110,11 @@ reason goes in the record. Phase 0 also runs the prior-art check.
 
 ## 6. Open questions for the owner
 
-1. **Where does the code live?** Answered 2026-10-21: a sibling repo in the HCL lane, separate
-   from the AVD repos, so decision 0012 and its guards stay as they are. The owner keeps it
-   private for now, so it isn't named here and gets no family.yaml row until it goes public.
-   Still open: its license (Apache-2.0 recommended, to match nerdio-hcl's reused files) and
-   which Claude project builds in it.
-2. **How does it relate to the landing zone?** Separate repo with shared contracts
-   (recommended), shared parameter schema, or parallel option (section 4).
+1. **Where does the code live?** Answered 2026-10-21: [avd-ops/avd-hcl](https://github.com/avd-ops/avd-hcl),
+   a sibling repo in the HCL lane, Apache-2.0, separate from the Bicep/PowerShell AVD repos so
+   decision 0012 and its guards stay as they are.
+2. **How does it relate to the landing zone?** Answered 2026-10-21: separate repo with shared
+   contracts (section 4).
 3. **Scope of the first build:** pooled, Entra-joined, one host pool, FSLogix on Azure Files,
    marketplace image first (recommended), with personal pools, AD DS and the custom image in
    later phases?
@@ -142,17 +138,16 @@ reason goes in the record. Phase 0 also runs the prior-art check.
 Each phase is one PR (or a small set) with `terraform test`, tflint and gitleaks green before any
 sandbox run.
 
-0. **Decide and set up.** Owner answers questions 1 to 3. Prior-art check, AVM and accelerator
-   review, name check. Set up the sibling repo (LICENSE, NOTICE with nerdio-hcl attribution),
-   guardrails, KB skeleton; family.yaml rows and lanes follow when it goes public. Record 0025 as accepted.
-1. **Engine core, offline.** Parameter schema, `init`, foundation, network, FSLogix storage, Key
-   Vault, control plane (host pool, desktop app group, workspace, assignments), session hosts
-   from a marketplace image, AVD Insights. `terraform test` with mocked providers only.
-2. **Gated pipeline and readiness.** Deploy pipeline (plan and apply identities, reviewer gate),
-   readiness engine with the Nerdio checks removed and the AVD ones added, verify phase checks.
-   First sandbox run after an estimate and the owner's go.
-3. **Day 2.** Scaling plans, auto shutdown and budget, host rotation, Packer image stage and
-   gallery pin, personal pools with Start VM on Connect.
+0. **Decide and set up.** Built in [avd-ops/avd-hcl](https://github.com/avd-ops/avd-hcl):
+   LICENSE (Apache-2.0), NOTICE with nerdio-hcl attribution, guardrails, KB skeleton, CI.
+1. **Engine core, offline.** Built offline: parameter schema, `init`, foundation, network, FSLogix
+   storage, Key Vault, control plane (host pool, desktop app group, workspace, assignments),
+   session hosts from a marketplace image, AVD Insights. `terraform test` with mocked providers only.
+2. **Gated pipeline and readiness.** Built offline: deploy pipeline (plan and apply identities,
+   reviewer gate), readiness engine with the Nerdio checks removed and the AVD ones added, verify
+   phase checks. First sandbox run after an estimate and the owner's go.
+3. **Day 2.** Built offline: scaling plans, auto shutdown and budget, host rotation, Packer image
+   stage and gallery pin, personal pools with Start VM on Connect.
 4. **Chat front door.** The assistant over the same schema and pipeline, handover runbook.
 5. **Later.** AD DS and Entra DS join, hardening (private endpoints, self-hosted runner), session
    host configuration opt-in, RemoteApp groups, Azure Government.

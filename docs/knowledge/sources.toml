@@ -317,3 +317,17 @@ kind = "github_commits"
 repo = "avd-ops/avd-ops"
 path = "docs/knowledge"
 kb_page = "curation.md"
+
+[[source]]
+name = "avd-hcl KB: decisions"
+kind = "github_commits"
+repo = "avd-ops/avd-hcl"
+path = "docs/knowledge/decisions"
+kb_page = "curation.md"
+
+[[source]]
+name = "avd-hcl KB: changes"
+kind = "github_commits"
+repo = "avd-ops/avd-hcl"
+path = "docs/knowledge"
+kb_page = "curation.md"
